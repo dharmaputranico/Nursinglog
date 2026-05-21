@@ -98,6 +98,9 @@
   .bar-val { font-size: 11px; color: var(--text2); min-width: 20px; text-align: right; }
   .note-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 13px 14px; margin-bottom: 9px; }
   .empty { text-align: center; padding: 28px 0; color: var(--text3); font-size: 14px; }
+  .period-tabs { display: flex; gap: 6px; margin-top: 4px; }
+  .period-btn { flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 600; background: var(--surface2); border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); cursor: pointer; color: var(--text2); font-family: inherit; transition: all 0.15s; }
+  .period-btn.active { background: var(--pink); color: #fff; border-color: var(--pink); }
   .toast { position: fixed; bottom: calc(28px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); background: #1a1918; color: #f0efe9; padding: 9px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; z-index: 999; }
   .toast.show { opacity: 1; }
 </style>
@@ -194,18 +197,23 @@
   </div>
 
   <div class="page" id="page-summary">
-    <div class="sec-label" id="lbl-today-glance">Today at a glance</div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-lbl" id="s-lbl-feeds">Nursing sessions</div><div class="stat-val" id="s-feeds">0</div></div>
-      <div class="stat-card"><div class="stat-lbl" id="s-lbl-ml">Total pumped</div><div class="stat-val" id="s-ml">0<span class="stat-unit">ml</span></div></div>
-      <div class="stat-card"><div class="stat-lbl" id="s-lbl-pumps">Pump sessions</div><div class="stat-val" id="s-pumps">0</div></div>
-      <div class="stat-card"><div class="stat-lbl" id="s-lbl-notes">Notes written</div><div class="stat-val" id="s-notes">0</div></div>
+    <div class="period-tabs">
+      <button class="period-btn active" onclick="setPeriod('today')" id="ptab-today">Today</button>
+      <button class="period-btn" onclick="setPeriod('week')" id="ptab-week">Week</button>
+      <button class="period-btn" onclick="setPeriod('month')" id="ptab-month">Month</button>
+      <button class="period-btn" onclick="setPeriod('all')" id="ptab-all">All time</button>
     </div>
-    <div class="sec-label" id="lbl-7day">7-day activity</div>
+    <div class="stats-grid" style="margin-top:14px">
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-feeds">Nursing sessions</div><div class="stat-val" id="s-feeds">0</div></div>
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-mins">Nursing time</div><div class="stat-val" id="s-mins">0<span class="stat-unit">m</span></div></div>
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-pumps">Pump sessions</div><div class="stat-val" id="s-pumps">0</div></div>
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-ml">Total pumped</div><div class="stat-val" id="s-ml">0<span class="stat-unit">ml</span></div></div>
+    </div>
+    <div class="sec-label" id="lbl-chart-title">Daily activity</div>
     <div class="card">
       <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--pink)"></div><span id="leg-feed">Nursing</span></div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span id="leg-pump">Pumping</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span id="leg-pump">Pumping (ml)</span></div>
       </div>
       <div id="week-chart"></div>
     </div>
@@ -253,7 +261,10 @@ const T = {
     leftBreast: 'Left breast', rightBreast: 'Right breast', bothSides: 'Both sides',
     noTimer: 'no timer',
     sFeeds: 'Nursing sessions', sMl: 'Total pumped', sPumps: 'Pump sessions', sNotes: 'Notes written',
-    legFeed: 'Nursing', legPump: 'Pumping',
+    sMins: 'Nursing time',
+    legFeed: 'Nursing', legPump: 'Pumping (ml)',
+    periodToday: 'Today', periodWeek: 'Week', periodMonth: 'Month', periodAll: 'All time',
+    chartTitle: 'Daily activity', chartTitleAll: 'All-time activity',
     emptyFeed: 'No sessions logged today', emptyPump: 'No pumping sessions today',
     emptyNotes: 'No notes yet', emptyFlagged: 'No flagged notes',
     toastFeed: 'Nursing session saved 🌸', toastPump: 'Pumping session saved 💜',
@@ -284,7 +295,10 @@ const T = {
     leftBreast: 'Payudara kiri', rightBreast: 'Payudara kanan', bothSides: 'Kedua sisi',
     noTimer: 'tanpa timer',
     sFeeds: 'Sesi menyusui', sMl: 'Total dipompa', sPumps: 'Sesi memompa', sNotes: 'Catatan ditulis',
-    legFeed: 'Menyusui', legPump: 'Memompa',
+    sMins: 'Durasi menyusui',
+    legFeed: 'Menyusui', legPump: 'Memompa (ml)',
+    periodToday: 'Hari ini', periodWeek: 'Minggu', periodMonth: 'Bulan', periodAll: 'Semua',
+    chartTitle: 'Aktivitas harian', chartTitleAll: 'Semua aktivitas',
     emptyFeed: 'Belum ada sesi hari ini', emptyPump: 'Belum ada sesi memompa',
     emptyNotes: 'Belum ada catatan', emptyFlagged: 'Tidak ada catatan yang ditandai',
     toastFeed: 'Sesi menyusui tersimpan 🌸', toastPump: 'Sesi memompa tersimpan 💜',
@@ -322,6 +336,7 @@ function setLang(l) {
   document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', ['en','id'][i] === l));
   applyTranslations();
   renderAll();
+  if (document.getElementById('page-summary').classList.contains('active')) renderSummary();
 }
 
 function applyTranslations() {
@@ -336,7 +351,10 @@ function applyTranslations() {
     'lbl-min':'min','save-feed-btn':'saveSession','save-pump-btn':'saveSession',
     'save-note-btn':'saveNote','lbl-flag':'flagLabel',
     's-lbl-feeds':'sFeeds','s-lbl-ml':'sMl','s-lbl-pumps':'sPumps','s-lbl-notes':'sNotes',
+    's-lbl-mins':'sMins',
     'leg-feed':'legFeed','leg-pump':'legPump',
+    'ptab-today':'periodToday','ptab-week':'periodWeek','ptab-month':'periodMonth','ptab-all':'periodAll',
+    'lbl-chart-title':'chartTitle',
     'lbl-feed-date':'dateLabel','lbl-pump-date':'dateLabel','lbl-note-date':'dateLabel',
     'confirm-title':'confirmTitle','confirm-body':'confirmBody',
     'confirm-cancel-btn':'confirmCancel','confirm-ok-btn':'confirmDelete',
@@ -499,33 +517,98 @@ function renderNotesLog() {
     c.appendChild(d);
   });
 }
-function renderSummary() {
+let summaryPeriod = 'today';
+
+function setPeriod(p) {
+  summaryPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ptab-' + p).classList.add('active');
+  renderSummary();
+}
+
+function getDateRange(period) {
+  const now = new Date();
   const today = todayKey();
-  const feeds = data.entries.filter(e => e.type==='feed' && e.date===today);
-  const pumps = data.entries.filter(e => e.type==='pump' && e.date===today);
+  if (period === 'today') {
+    return { keys: new Set([today]), days: null };
+  }
+  if (period === 'week') {
+    const keys = new Set();
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now); d.setDate(d.getDate() - i);
+      const k = d.toISOString().slice(0,10);
+      keys.add(k); days.push({key:k, label: t('days')[d.getDay()]});
+    }
+    return { keys, days };
+  }
+  if (period === 'month') {
+    const keys = new Set();
+    const days = [];
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    for (let i = daysInMonth-1; i >= 0; i--) {
+      const d = new Date(now); d.setDate(d.getDate() - i);
+      if (d.getMonth() === now.getMonth()) {
+        const k = d.toISOString().slice(0,10);
+        keys.add(k); days.push({key:k, label: String(d.getDate())});
+      }
+    }
+    return { keys, days };
+  }
+  // all time
+  const allKeys = new Set(data.entries.map(e => e.date));
+  const days = Array.from(allKeys).sort().map(k => {
+    const d = new Date(k+'T00:00:00');
+    return {key:k, label: (d.getMonth()+1)+'/'+(d.getDate())};
+  });
+  return { keys: allKeys, days: days.length ? days : null };
+}
+
+function renderSummary() {
+  const range = getDateRange(summaryPeriod);
+  const inRange = e => range.keys.has(e.date);
+  const feeds = data.entries.filter(e => e.type==='feed' && inRange(e));
+  const pumps = data.entries.filter(e => e.type==='pump' && inRange(e));
   const totalMl = pumps.reduce((s,e) => s+(e.ml||0), 0);
+  const totalMins = Math.round(feeds.reduce((s,e) => s+(e.duration||0), 0) / 60);
+
   document.getElementById('s-feeds').textContent = feeds.length;
   document.getElementById('s-pumps').textContent = pumps.length;
   document.getElementById('s-ml').innerHTML = totalMl+'<span class="stat-unit">ml</span>';
-  document.getElementById('s-notes').textContent = data.entries.filter(e => e.type==='note').length;
+  document.getElementById('s-mins').innerHTML = totalMins+'<span class="stat-unit">m</span>';
+
+  const chartTitle = document.getElementById('lbl-chart-title');
+  if (chartTitle) chartTitle.textContent = summaryPeriod === 'all' ? t('chartTitleAll') : t('chartTitle');
+
   const chart = document.getElementById('week-chart');
   chart.innerHTML = '';
-  const now = new Date();
-  const maxV = Math.max(1, ...Array.from({length:7},(_,i) => {
-    const d = new Date(now); d.setDate(d.getDate()-i);
-    return data.entries.filter(e => (e.type==='feed'||e.type==='pump') && e.date===d.toISOString().slice(0,10)).length;
-  }));
-  for (let i=6; i>=0; i--) {
-    const d = new Date(now); d.setDate(d.getDate()-i);
-    const key = d.toISOString().slice(0,10);
-    const f = data.entries.filter(e => e.type==='feed' && e.date===key).length;
-    const p = data.entries.filter(e => e.type==='pump' && e.date===key).length;
-    const total = f+p;
-    const pct = Math.round(total/maxV*100);
-    const row = document.createElement('div'); row.className = 'bar-row';
-    row.innerHTML = `<div class="bar-day">${t('days')[d.getDay()]}</div><div class="bar-track"><div class="bar-fill feed" style="width:${pct}%"></div></div><div class="bar-val">${total}</div>`;
-    chart.appendChild(row);
+
+  const days = range.days;
+  if (!days || days.length === 0) {
+    chart.innerHTML = '<div class="empty" style="padding:16px 0">'+t('emptyFeed')+'</div>';
+  } else {
+    const maxF = Math.max(1, ...days.map(({key}) => data.entries.filter(e => e.type==='feed' && e.date===key).length));
+    const maxMl = Math.max(1, ...days.map(({key}) => data.entries.filter(e => e.type==='pump' && e.date===key).reduce((s,e)=>s+(e.ml||0),0)));
+
+    days.forEach(({key, label}) => {
+      const f = data.entries.filter(e => e.type==='feed' && e.date===key).length;
+      const ml = data.entries.filter(e => e.type==='pump' && e.date===key).reduce((s,e)=>s+(e.ml||0),0);
+      const fPct = Math.round(f / maxF * 100);
+      const mlPct = Math.round(ml / maxMl * 100);
+      const row = document.createElement('div'); row.className = 'bar-row';
+      row.innerHTML =
+        `<div class="bar-day" style="min-width:${summaryPeriod==='month'||summaryPeriod==='all'?'22px':'28px'};font-size:${summaryPeriod==='month'||summaryPeriod==='all'?'10px':'11px'}">${label}</div>`+
+        `<div style="flex:1;display:flex;flex-direction:column;gap:3px">`+
+          `<div class="bar-track"><div class="bar-fill" style="width:${fPct}%;background:var(--pink)"></div></div>`+
+          `<div class="bar-track"><div class="bar-fill" style="width:${mlPct}%;background:var(--purple)"></div></div>`+
+        `</div>`+
+        `<div style="min-width:52px;text-align:right;font-size:10px;color:var(--text2);line-height:1.5">`+
+          `<span style="color:var(--pink)">${f}x</span> <span style="color:var(--purple)">${ml}ml</span>`+
+        `</div>`;
+      chart.appendChild(row);
+    });
   }
+
   const flagged = data.entries.filter(e => e.type==='note' && e.flagged).sort((a,b) => b.ts-a.ts);
   const fc = document.getElementById('flagged-container');
   if (!flagged.length) { fc.innerHTML = '<div class="empty">'+t('emptyFlagged')+'</div>'; return; }
