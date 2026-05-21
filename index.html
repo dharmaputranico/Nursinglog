@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Mama Milk"/>
+<meta name="theme-color" content="#D4537E"/>
+<title>Mama Milk Journal</title>
+<style>
+  :root {
+    --pink: #D4537E; --pink-dark: #993556; --pink-light: #FBEAF0;
+    --purple: #7F77DD; --teal: #1D9E75;
+    --red: #E24B4A; --red-dark: #A32D2D; --red-bg: #FCEBEB;
+    --bg: #fafaf9; --surface: #ffffff; --surface2: #f5f4f2;
+    --border: rgba(0,0,0,0.1); --border-mid: rgba(0,0,0,0.18);
+    --text: #1a1a18; --text2: #6b6b67; --text3: #a0a09a;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1918; --surface: #252422; --surface2: #2e2c2a;
+      --border: rgba(255,255,255,0.1); --border-mid: rgba(255,255,255,0.18);
+      --text: #f0efe9; --text2: #a09e98; --text3: #6b6b65;
+      --pink-light: #3a1f2a; --red-bg: #2e1515;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+  .header { padding: 52px 20px 12px; background: var(--surface); border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; }
+  .header-left .app-title { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .header-left .app-date { font-size: 13px; color: var(--text3); margin-top: 2px; }
+  .lang-toggle { display: flex; border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); overflow: hidden; margin-top: 4px; }
+  .lang-btn { padding: 6px 12px; font-size: 12px; font-weight: 600; background: none; border: none; cursor: pointer; color: var(--text2); font-family: inherit; letter-spacing: 0.04em; }
+  .lang-btn.active { background: var(--pink); color: #fff; }
+  .nav { display: flex; background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 4px; }
+  .nav-btn { flex: 1; padding: 12px 2px 11px; font-size: 12px; background: none; border: none; border-bottom: 2.5px solid transparent; cursor: pointer; color: var(--text3); font-family: inherit; font-weight: 500; transition: all 0.15s; }
+  .nav-btn.active { color: var(--pink); border-bottom-color: var(--pink); }
+  .pages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(16px + var(--safe-bottom)); }
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+  .sec-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin: 20px 0 9px; }
+  .sec-label:first-child { margin-top: 0; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 10px; }
+  .side-btns { display: flex; gap: 7px; margin-bottom: 12px; }
+  .side-btn { flex: 1; padding: 10px 6px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); background: var(--surface2); cursor: pointer; font-size: 13px; color: var(--text2); font-family: inherit; font-weight: 500; transition: all 0.15s; }
+  .side-btn.active { background: var(--pink-light); border-color: var(--pink); color: var(--pink-dark); }
+  .timer-display { text-align: center; padding: 16px 0 10px; }
+  .timer-num { font-size: 42px; font-weight: 300; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+  .timer-lbl { font-size: 12px; color: var(--text3); margin-top: 4px; min-height: 18px; }
+  .abtn { width: 100%; padding: 13px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 14px; font-family: inherit; font-weight: 600; transition: all 0.15s; margin-top: 8px; }
+  .btn-p { background: var(--pink); color: #fff; }
+  .btn-p:active { background: var(--pink-dark); transform: scale(0.98); }
+  .btn-s { background: var(--surface2); color: var(--text); border: 0.5px solid var(--border-mid); }
+  .btn-s:active { opacity: 0.7; transform: scale(0.98); }
+  .ml-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .ml-row label { font-size: 13px; color: var(--text2); min-width: 64px; }
+  .ml-row input[type=number] { flex: 1; max-width: 100px; padding: 9px 12px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); font-size: 15px; font-family: inherit; background: var(--surface2); color: var(--text); outline: none; }
+  .ml-row input[type=number]:focus { border-color: var(--pink); }
+  .ml-unit { font-size: 13px; color: var(--text2); }
+  textarea { width: 100%; border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); padding: 12px; font-size: 14px; font-family: inherit; background: var(--surface2); color: var(--text); resize: none; line-height: 1.6; outline: none; }
+  textarea:focus { border-color: var(--pink); }
+  .flag-row { display: flex; align-items: center; gap: 9px; margin-top: 12px; cursor: pointer; }
+  .flag-row input { accent-color: var(--pink); width: 17px; height: 17px; cursor: pointer; }
+  .flag-row span { font-size: 13px; color: var(--text2); }
+  .log-entry { display: flex; align-items: flex-start; gap: 11px; padding: 11px 0; border-bottom: 0.5px solid var(--border); }
+  .log-entry:last-child { border-bottom: none; }
+  .ldot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .dot-feed { background: var(--pink); }
+  .dot-pump { background: var(--purple); }
+  .dot-note { background: var(--teal); }
+  .dot-flag { background: var(--red); }
+  .log-info { flex: 1; min-width: 0; }
+  .log-title { font-size: 14px; color: var(--text); font-weight: 500; }
+  .log-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .log-time { font-size: 11px; color: var(--text3); flex-shrink: 0; padding-top: 2px; }
+  .del-btn { background: none; border: none; cursor: pointer; color: var(--text3); padding: 4px; font-size: 18px; line-height: 1; }
+  .del-btn:active { color: var(--red); }
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--surface2); border-radius: var(--radius-md); padding: 14px; }
+  .stat-lbl { font-size: 11px; color: var(--text3); margin-bottom: 5px; font-weight: 500; }
+  .stat-val { font-size: 24px; font-weight: 600; color: var(--text); line-height: 1; }
+  .stat-unit { font-size: 13px; font-weight: 400; color: var(--text2); margin-left: 2px; }
+  .flagged-entry { background: var(--red-bg); padding: 12px 14px; margin-bottom: 8px; border-left: 3px solid var(--red); }
+  .flagged-entry .ft { font-size: 13px; font-weight: 600; color: var(--red-dark); }
+  .flagged-entry .fb { font-size: 13px; color: var(--red-dark); margin-top: 4px; line-height: 1.5; opacity: 0.85; }
+  .legend { display: flex; gap: 14px; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .bar-day { font-size: 11px; color: var(--text3); min-width: 28px; }
+  .bar-track { flex: 1; height: 14px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .bar-fill.feed { background: var(--pink); }
+  .bar-val { font-size: 11px; color: var(--text2); min-width: 20px; text-align: right; }
+  .note-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 13px 14px; margin-bottom: 9px; }
+  .empty { text-align: center; padding: 28px 0; color: var(--text3); font-size: 14px; }
+  .toast { position: fixed; bottom: calc(28px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); background: #1a1918; color: #f0efe9; padding: 9px 20px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; z-index: 999; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="app-title" id="app-title">🌸 Mama Milk Journal</div>
+    <div class="app-date" id="today-date"></div>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('id')">ID</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('feed')" id="nav-feed">Nursing</button>
+  <button class="nav-btn" onclick="showPage('pump')" id="nav-pump">Pumping</button>
+  <button class="nav-btn" onclick="showPage('journal')" id="nav-journal">Journal</button>
+  <button class="nav-btn" onclick="showPage('summary')" id="nav-summary">Summary</button>
+</div>
+
+<div class="pages">
+
+  <div class="page active" id="page-feed">
+    <div class="sec-label" id="lbl-new-session">New session</div>
+    <div class="card">
+      <div class="side-btns">
+        <button class="side-btn active" id="side-L" onclick="selectSide('L')">Left</button>
+        <button class="side-btn" id="side-R" onclick="selectSide('R')">Right</button>
+        <button class="side-btn" id="side-B" onclick="selectSide('B')">Both</button>
+      </div>
+      <div class="timer-display">
+        <div class="timer-num" id="timer-display">00:00</div>
+        <div class="timer-lbl" id="timer-label-el">tap to start</div>
+      </div>
+      <button class="abtn btn-p" id="timer-btn" onclick="toggleTimer()">Start</button>
+      <button class="abtn btn-s" id="save-feed-btn" onclick="saveFeed()">Save session</button>
+    </div>
+    <div class="sec-label" id="lbl-today-nursing">Today's nursing</div>
+    <div class="card" id="feed-log"><div class="empty">No sessions logged today</div></div>
+  </div>
+
+  <div class="page" id="page-pump">
+    <div class="sec-label" id="lbl-log-pump">Log pumping session</div>
+    <div class="card">
+      <div class="side-btns">
+        <button class="side-btn active" id="pside-L" onclick="selectPSide('L')">Left</button>
+        <button class="side-btn" id="pside-R" onclick="selectPSide('R')">Right</button>
+        <button class="side-btn" id="pside-B" onclick="selectPSide('B')">Both</button>
+      </div>
+      <div class="ml-row" style="margin-top:4px">
+        <label id="lbl-amount">Amount</label>
+        <input type="number" id="ml-amount" min="0" max="500" placeholder="0"/>
+        <span class="ml-unit">ml</span>
+      </div>
+      <div class="ml-row">
+        <label id="lbl-duration">Duration</label>
+        <input type="number" id="pump-dur" min="0" max="90" placeholder="0"/>
+        <span class="ml-unit" id="lbl-min">min</span>
+      </div>
+      <button class="abtn btn-p" id="save-pump-btn" onclick="savePump()">Save session</button>
+    </div>
+    <div class="sec-label" id="lbl-today-pump">Today's pumping</div>
+    <div class="card" id="pump-log"><div class="empty">No pumping sessions today</div></div>
+  </div>
+
+  <div class="page" id="page-journal">
+    <div class="sec-label" id="lbl-add-note">Add a note</div>
+    <div class="card">
+      <textarea id="journal-text" rows="5" placeholder="How is the latch today? How are you feeling? Any concerns..."></textarea>
+      <label class="flag-row">
+        <input type="checkbox" id="flag-check"/>
+        <span id="lbl-flag">🚩 Flag for doctor visit</span>
+      </label>
+      <button class="abtn btn-p" id="save-note-btn" onclick="saveNote()">Save note</button>
+    </div>
+    <div class="sec-label" id="lbl-notes-log">Notes log</div>
+    <div id="notes-log"><div class="empty">No notes yet</div></div>
+  </div>
+
+  <div class="page" id="page-summary">
+    <div class="sec-label" id="lbl-today-glance">Today at a glance</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-feeds">Nursing sessions</div><div class="stat-val" id="s-feeds">0</div></div>
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-ml">Total pumped</div><div class="stat-val" id="s-ml">0<span class="stat-unit">ml</span></div></div>
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-pumps">Pump sessions</div><div class="stat-val" id="s-pumps">0</div></div>
+      <div class="stat-card"><div class="stat-lbl" id="s-lbl-notes">Notes written</div><div class="stat-val" id="s-notes">0</div></div>
+    </div>
+    <div class="sec-label" id="lbl-7day">7-day activity</div>
+    <div class="card">
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--pink)"></div><span id="leg-feed">Nursing</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span id="leg-pump">Pumping</span></div>
+      </div>
+      <div id="week-chart"></div>
+    </div>
+    <div class="sec-label" id="lbl-flagged">🚩 Flagged for doctor</div>
+    <div id="flagged-container"><div class="empty">No flagged notes</div></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'mama_milk_v3';
+let lang = 'en';
+let data = { entries: [] };
+let timerInterval = null, timerRunning = false, timerSeconds = 0, timerStart = null;
+let feedSide = 'L', pumpSide = 'L';
+
+const T = {
+  en: {
+    appTitle: '🌸 Mama Milk Journal',
+    navFeed: 'Nursing', navPump: 'Pumping', navJournal: 'Journal', navSummary: 'Summary',
+    newSession: 'New session', todayNursing: "Today's nursing",
+    logPump: 'Log pumping session', todayPump: "Today's pumping",
+    addNote: 'Add a note', notesLog: 'Notes log',
+    todayGlance: 'Today at a glance', sevenDay: '7-day activity',
+    flaggedDoc: '🚩 Flagged for doctor',
+    left: 'Left', right: 'Right', both: 'Both',
+    amount: 'Amount', duration: 'Duration', min: 'min',
+    saveSession: 'Save session', saveNote: 'Save note',
+    flagLabel: '🚩 Flag for doctor visit',
+    tapToStart: 'tap to start', feeding: 'feeding in progress...', paused: 'paused',
+    start: 'Start', pause: 'Pause', resume: 'Resume',
+    leftBreast: 'Left breast', rightBreast: 'Right breast', bothSides: 'Both sides',
+    noTimer: 'no timer',
+    sFeeds: 'Nursing sessions', sMl: 'Total pumped', sPumps: 'Pump sessions', sNotes: 'Notes written',
+    legFeed: 'Nursing', legPump: 'Pumping',
+    emptyFeed: 'No sessions logged today', emptyPump: 'No pumping sessions today',
+    emptyNotes: 'No notes yet', emptyFlagged: 'No flagged notes',
+    toastFeed: 'Nursing session saved 🌸', toastPump: 'Pumping session saved 💜',
+    toastNote: 'Note saved 📝', toastNoteFlagged: 'Note saved & flagged 🚩',
+    toastWriteFirst: 'Write something first!',
+    journalPlaceholder: 'How is the latch today? How are you feeling? Any concerns to mention to the doctor...',
+    days: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  },
+  id: {
+    appTitle: '🌸 Jurnal Mama',
+    navFeed: 'Menyusui', navPump: 'Pompa', navJournal: 'Jurnal', navSummary: 'Ringkasan',
+    newSession: 'Sesi baru', todayNursing: 'Menyusui hari ini',
+    logPump: 'Catat sesi memompa', todayPump: 'Pompa hari ini',
+    addNote: 'Tambah catatan', notesLog: 'Daftar catatan',
+    todayGlance: 'Ringkasan hari ini', sevenDay: 'Aktivitas 7 hari',
+    flaggedDoc: '🚩 Ditandai untuk dokter',
+    left: 'Kiri', right: 'Kanan', both: 'Kedua',
+    amount: 'Jumlah', duration: 'Durasi', min: 'mnt',
+    saveSession: 'Simpan sesi', saveNote: 'Simpan catatan',
+    flagLabel: '🚩 Tandai untuk dokter',
+    tapToStart: 'ketuk untuk mulai', feeding: 'sedang menyusui...', paused: 'dijeda',
+    start: 'Mulai', pause: 'Jeda', resume: 'Lanjutkan',
+    leftBreast: 'Payudara kiri', rightBreast: 'Payudara kanan', bothSides: 'Kedua sisi',
+    noTimer: 'tanpa timer',
+    sFeeds: 'Sesi menyusui', sMl: 'Total dipompa', sPumps: 'Sesi memompa', sNotes: 'Catatan ditulis',
+    legFeed: 'Menyusui', legPump: 'Memompa',
+    emptyFeed: 'Belum ada sesi hari ini', emptyPump: 'Belum ada sesi memompa',
+    emptyNotes: 'Belum ada catatan', emptyFlagged: 'Tidak ada catatan yang ditandai',
+    toastFeed: 'Sesi menyusui tersimpan 🌸', toastPump: 'Sesi memompa tersimpan 💜',
+    toastNote: 'Catatan tersimpan 📝', toastNoteFlagged: 'Catatan tersimpan & ditandai 🚩',
+    toastWriteFirst: 'Tulis sesuatu dulu!',
+    journalPlaceholder: 'Bagaimana pelekatan hari ini? Bagaimana perasaan Anda? Ada yang ingin dikonsultasikan ke dokter...',
+    days: ['Min','Sen','Sel','Rab','Kam','Jum','Sab'],
+  }
+};
+
+function t(k) { return (T[lang] && T[lang][k]) || T.en[k] || k; }
+
+function loadData() {
+  try { const r = localStorage.getItem(STORAGE_KEY); if (r) data = JSON.parse(r); } catch(e) {}
+}
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function formatTime(ts) { return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', ['en','id'][i] === l));
+  applyTranslations();
+  renderAll();
+}
+
+function applyTranslations() {
+  const ids = {
+    'app-title':'appTitle','nav-feed':'navFeed','nav-pump':'navPump',
+    'nav-journal':'navJournal','nav-summary':'navSummary',
+    'lbl-new-session':'newSession','lbl-today-nursing':'todayNursing',
+    'lbl-log-pump':'logPump','lbl-today-pump':'todayPump',
+    'lbl-add-note':'addNote','lbl-notes-log':'notesLog',
+    'lbl-today-glance':'todayGlance','lbl-7day':'sevenDay',
+    'lbl-flagged':'flaggedDoc','lbl-amount':'amount','lbl-duration':'duration',
+    'lbl-min':'min','save-feed-btn':'saveSession','save-pump-btn':'saveSession',
+    'save-note-btn':'saveNote','lbl-flag':'flagLabel',
+    's-lbl-feeds':'sFeeds','s-lbl-ml':'sMl','s-lbl-pumps':'sPumps','s-lbl-notes':'sNotes',
+    'leg-feed':'legFeed','leg-pump':'legPump',
+  };
+  Object.entries(ids).forEach(([id,key]) => {
+    const el = document.getElementById(id); if (el) el.textContent = t(key);
+  });
+  [['side-L','left'],['side-R','right'],['side-B','both'],
+   ['pside-L','left'],['pside-R','right'],['pside-B','both']].forEach(([id,key]) => {
+    const el = document.getElementById(id); if (el) el.textContent = t(key);
+  });
+  const jt = document.getElementById('journal-text');
+  if (jt) jt.placeholder = t('journalPlaceholder');
+  const tbl = document.getElementById('timer-label-el');
+  if (tbl) tbl.textContent = timerRunning ? t('feeding') : timerSeconds > 0 ? t('paused') : t('tapToStart');
+  const tbtn = document.getElementById('timer-btn');
+  if (tbtn) tbtn.textContent = timerRunning ? t('pause') : timerSeconds > 0 ? t('resume') : t('start');
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString(
+    lang === 'id' ? 'id-ID' : 'en-US',
+    {weekday:'long', month:'long', day:'numeric', year:'numeric'}
+  );
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'summary') renderSummary();
+}
+
+function selectSide(s) {
+  feedSide = s;
+  ['L','R','B'].forEach(x => document.getElementById('side-'+x).classList.toggle('active', x === s));
+}
+function selectPSide(s) {
+  pumpSide = s;
+  ['L','R','B'].forEach(x => document.getElementById('pside-'+x).classList.toggle('active', x === s));
+}
+function sideLabel(s) {
+  return s==='L' ? t('leftBreast') : s==='R' ? t('rightBreast') : t('bothSides');
+}
+
+function toggleTimer() {
+  if (!timerRunning) {
+    timerStart = Date.now() - timerSeconds * 1000;
+    timerRunning = true;
+    document.getElementById('timer-btn').textContent = t('pause');
+    document.getElementById('timer-label-el').textContent = t('feeding');
+    timerInterval = setInterval(tickTimer, 500);
+  } else {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-btn').textContent = t('resume');
+    document.getElementById('timer-label-el').textContent = t('paused');
+  }
+}
+function tickTimer() {
+  timerSeconds = Math.floor((Date.now() - timerStart) / 1000);
+  const m = String(Math.floor(timerSeconds/60)).padStart(2,'0');
+  const s = String(timerSeconds%60).padStart(2,'0');
+  document.getElementById('timer-display').textContent = m + ':' + s;
+}
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false; timerSeconds = 0; timerStart = null;
+  document.getElementById('timer-display').textContent = '00:00';
+  document.getElementById('timer-btn').textContent = t('start');
+  document.getElementById('timer-label-el').textContent = t('tapToStart');
+}
+
+function saveFeed() {
+  data.entries.push({id:Date.now(), type:'feed', side:feedSide, duration:timerSeconds, date:todayKey(), ts:Date.now()});
+  saveData(); resetTimer(); renderFeedLog(); showToast(t('toastFeed'));
+}
+function savePump() {
+  const ml = parseFloat(document.getElementById('ml-amount').value) || 0;
+  const dur = parseFloat(document.getElementById('pump-dur').value) || 0;
+  data.entries.push({id:Date.now(), type:'pump', side:pumpSide, ml, duration:dur, date:todayKey(), ts:Date.now()});
+  saveData();
+  document.getElementById('ml-amount').value = '';
+  document.getElementById('pump-dur').value = '';
+  renderPumpLog(); showToast(t('toastPump'));
+}
+function saveNote() {
+  const txt = document.getElementById('journal-text').value.trim();
+  if (!txt) { showToast(t('toastWriteFirst')); return; }
+  const flagged = document.getElementById('flag-check').checked;
+  data.entries.push({id:Date.now(), type:'note', text:txt, flagged, date:todayKey(), ts:Date.now()});
+  saveData();
+  document.getElementById('journal-text').value = '';
+  document.getElementById('flag-check').checked = false;
+  renderNotesLog(); showToast(flagged ? t('toastNoteFlagged') : t('toastNote'));
+}
+function deleteEntry(id) {
+  data.entries = data.entries.filter(e => e.id !== id);
+  saveData(); renderAll();
+}
+
+function renderFeedLog() {
+  const entries = data.entries.filter(e => e.type==='feed' && e.date===todayKey()).sort((a,b) => b.ts-a.ts);
+  const c = document.getElementById('feed-log');
+  if (!entries.length) { c.innerHTML = '<div class="empty">'+t('emptyFeed')+'</div>'; return; }
+  c.innerHTML = '';
+  entries.forEach(e => {
+    const m = Math.floor(e.duration/60), s = e.duration%60;
+    const dur = e.duration ? m+'m '+s+'s' : t('noTimer');
+    const d = document.createElement('div'); d.className = 'log-entry';
+    d.innerHTML = `<div class="ldot dot-feed"></div><div class="log-info"><div class="log-title">${sideLabel(e.side)}</div><div class="log-sub">${dur}</div></div><div class="log-time">${formatTime(e.ts)}</div><button class="del-btn" onclick="deleteEntry(${e.id})">&#x1F5D1;</button>`;
+    c.appendChild(d);
+  });
+}
+function renderPumpLog() {
+  const entries = data.entries.filter(e => e.type==='pump' && e.date===todayKey()).sort((a,b) => b.ts-a.ts);
+  const c = document.getElementById('pump-log');
+  if (!entries.length) { c.innerHTML = '<div class="empty">'+t('emptyPump')+'</div>'; return; }
+  c.innerHTML = '';
+  entries.forEach(e => {
+    const d = document.createElement('div'); d.className = 'log-entry';
+    d.innerHTML = `<div class="ldot dot-pump"></div><div class="log-info"><div class="log-title">${sideLabel(e.side)} — ${e.ml} ml</div><div class="log-sub">${e.duration ? e.duration+' '+t('min') : ''}</div></div><div class="log-time">${formatTime(e.ts)}</div><button class="del-btn" onclick="deleteEntry(${e.id})">&#x1F5D1;</button>`;
+    c.appendChild(d);
+  });
+}
+function renderNotesLog() {
+  const entries = data.entries.filter(e => e.type==='note').sort((a,b) => b.ts-a.ts);
+  const c = document.getElementById('notes-log');
+  if (!entries.length) { c.innerHTML = '<div class="empty">'+t('emptyNotes')+'</div>'; return; }
+  c.innerHTML = '';
+  entries.forEach(e => {
+    const preview = e.text.length > 120 ? e.text.slice(0,120)+'…' : e.text;
+    const d = document.createElement('div'); d.className = 'note-card';
+    d.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px"><div class="ldot ${e.flagged?'dot-flag':'dot-note'}" style="margin-top:4px;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);line-height:1.5">${preview}</div><div style="font-size:11px;color:var(--text3);margin-top:4px">${new Date(e.ts).toLocaleDateString([],{month:'short',day:'numeric'})} ${formatTime(e.ts)}${e.flagged?' · 🚩':''}</div></div><button class="del-btn" onclick="deleteEntry(${e.id})">&#x1F5D1;</button></div>`;
+    c.appendChild(d);
+  });
+}
+function renderSummary() {
+  const today = todayKey();
+  const feeds = data.entries.filter(e => e.type==='feed' && e.date===today);
+  const pumps = data.entries.filter(e => e.type==='pump' && e.date===today);
+  const totalMl = pumps.reduce((s,e) => s+(e.ml||0), 0);
+  document.getElementById('s-feeds').textContent = feeds.length;
+  document.getElementById('s-pumps').textContent = pumps.length;
+  document.getElementById('s-ml').innerHTML = totalMl+'<span class="stat-unit">ml</span>';
+  document.getElementById('s-notes').textContent = data.entries.filter(e => e.type==='note').length;
+  const chart = document.getElementById('week-chart');
+  chart.innerHTML = '';
+  const now = new Date();
+  const maxV = Math.max(1, ...Array.from({length:7},(_,i) => {
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    return data.entries.filter(e => (e.type==='feed'||e.type==='pump') && e.date===d.toISOString().slice(0,10)).length;
+  }));
+  for (let i=6; i>=0; i--) {
+    const d = new Date(now); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const f = data.entries.filter(e => e.type==='feed' && e.date===key).length;
+    const p = data.entries.filter(e => e.type==='pump' && e.date===key).length;
+    const total = f+p;
+    const pct = Math.round(total/maxV*100);
+    const row = document.createElement('div'); row.className = 'bar-row';
+    row.innerHTML = `<div class="bar-day">${t('days')[d.getDay()]}</div><div class="bar-track"><div class="bar-fill feed" style="width:${pct}%"></div></div><div class="bar-val">${total}</div>`;
+    chart.appendChild(row);
+  }
+  const flagged = data.entries.filter(e => e.type==='note' && e.flagged).sort((a,b) => b.ts-a.ts);
+  const fc = document.getElementById('flagged-container');
+  if (!flagged.length) { fc.innerHTML = '<div class="empty">'+t('emptyFlagged')+'</div>'; return; }
+  fc.innerHTML = '';
+  flagged.forEach(e => {
+    const d = document.createElement('div'); d.className = 'flagged-entry';
+    d.innerHTML = `<div class="ft">🚩 ${new Date(e.ts).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})}</div><div class="fb">${e.text}</div>`;
+    fc.appendChild(d);
+  });
+}
+function renderAll() {
+  renderFeedLog(); renderPumpLog(); renderNotesLog();
+  if (document.getElementById('page-summary').classList.contains('active')) renderSummary();
+}
+
+loadData();
+applyTranslations();
+renderAll();
+</script>
+</body>
+</html>
