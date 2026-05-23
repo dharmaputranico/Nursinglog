@@ -79,6 +79,8 @@
   .log-time { font-size: 11px; color: var(--text3); flex-shrink: 0; padding-top: 2px; }
   .del-btn { background: none; border: none; cursor: pointer; color: var(--text3); padding: 4px; font-size: 18px; line-height: 1; }
   .del-btn:active { color: var(--red); }
+  .edit-btn { background: none; border: none; cursor: pointer; padding: 4px; font-size: 15px; line-height: 1; opacity: 0.6; }
+  .edit-btn:active { opacity: 1; }
   .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
   .stat-card { background: var(--surface2); border-radius: var(--radius-md); padding: 14px; }
   .stat-lbl { font-size: 11px; color: var(--text3); margin-bottom: 5px; font-weight: 500; }
@@ -234,6 +236,69 @@
   </div>
 </div>
 
+<!-- EDIT MODAL -->
+<div id="edit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:24px 20px 32px;width:100%;max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-size:16px;font-weight:600;color:var(--text);" id="edit-modal-title">Edit entry</div>
+      <button onclick="closeEdit()" style="background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer;line-height:1;">×</button>
+    </div>
+
+    <!-- Feed edit fields -->
+    <div id="edit-feed-fields">
+      <div class="ml-row"><label id="edit-lbl-side">Side</label>
+        <div style="display:flex;gap:6px;flex:1">
+          <button class="side-btn active" id="edit-side-L" onclick="editSelectSide('L')" style="flex:1">Left</button>
+          <button class="side-btn" id="edit-side-R" onclick="editSelectSide('R')" style="flex:1">Right</button>
+          <button class="side-btn" id="edit-side-B" onclick="editSelectSide('B')" style="flex:1">Both</button>
+        </div>
+      </div>
+      <div class="ml-row"><label id="edit-lbl-dur">Duration</label>
+        <input type="number" id="edit-feed-dur-m" min="0" max="180" placeholder="0" style="width:60px;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+        <span class="ml-unit" id="edit-lbl-m">m</span>
+        <input type="number" id="edit-feed-dur-s" min="0" max="59" placeholder="0" style="width:56px;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+        <span class="ml-unit" id="edit-lbl-s">s</span>
+      </div>
+      <div class="ml-row"><label id="edit-lbl-date">Date</label>
+        <input type="date" id="edit-feed-date" style="flex:1;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+      </div>
+      <div class="ml-row"><label id="edit-lbl-time">Time</label>
+        <input type="time" id="edit-feed-time" style="flex:1;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+      </div>
+    </div>
+
+    <!-- Pump edit fields -->
+    <div id="edit-pump-fields" style="display:none">
+      <div class="ml-row"><label id="edit-lbl-pside">Side</label>
+        <div style="display:flex;gap:6px;flex:1">
+          <button class="side-btn active" id="edit-pside-L" onclick="editSelectPSide('L')" style="flex:1">Left</button>
+          <button class="side-btn" id="edit-pside-R" onclick="editSelectPSide('R')" style="flex:1">Right</button>
+          <button class="side-btn" id="edit-pside-B" onclick="editSelectPSide('B')" style="flex:1">Both</button>
+        </div>
+      </div>
+      <div class="ml-row"><label id="edit-lbl-ml">Amount</label>
+        <input type="number" id="edit-pump-ml" min="0" max="999" placeholder="0" style="width:80px;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+        <span class="ml-unit">ml</span>
+      </div>
+      <div class="ml-row"><label id="edit-lbl-pdur">Duration</label>
+        <input type="number" id="edit-pump-dur" min="0" max="180" placeholder="0" style="width:70px;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+        <span class="ml-unit" id="edit-lbl-pmin">min</span>
+      </div>
+      <div class="ml-row"><label id="edit-lbl-pdate">Date</label>
+        <input type="date" id="edit-pump-date" style="flex:1;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+      </div>
+      <div class="ml-row"><label id="edit-lbl-ptime">Time</label>
+        <input type="time" id="edit-pump-time" style="flex:1;padding:8px 10px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;"/>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button onclick="closeEdit()" style="flex:1;padding:12px;border-radius:var(--radius-sm);border:0.5px solid var(--border-mid);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;" id="edit-cancel-btn">Cancel</button>
+      <button onclick="saveEdit()" style="flex:2;padding:12px;border-radius:var(--radius-sm);border:none;background:var(--pink);color:#fff;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;" id="edit-save-btn">Save changes</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -277,6 +342,12 @@ const T = {
     confirmBody: 'This action cannot be undone.',
     confirmCancel: 'Cancel',
     confirmDelete: 'Delete',
+    editFeedTitle: 'Edit nursing session',
+    editPumpTitle: 'Edit pumping session',
+    editSave: 'Save changes',
+    editTime: 'Time',
+    editM: 'm', editS: 's',
+    toastEdited: 'Entry updated ✏️',
   },
   id: {
     appTitle: '🌸 Jurnal Mama',
@@ -311,6 +382,12 @@ const T = {
     confirmBody: 'Tindakan ini tidak dapat dibatalkan.',
     confirmCancel: 'Batal',
     confirmDelete: 'Hapus',
+    editFeedTitle: 'Edit sesi menyusui',
+    editPumpTitle: 'Edit sesi memompa',
+    editSave: 'Simpan perubahan',
+    editTime: 'Waktu',
+    editM: 'm', editS: 'd',
+    toastEdited: 'Entri diperbarui ✏️',
   }
 };
 
@@ -479,6 +556,108 @@ function initDates() {
   });
 }
 
+// ── EDIT MODAL ────────────────────────────────────────────────
+let editingId = null;
+let editingType = null;
+let editSide = 'L';
+let editPSide = 'L';
+
+function editSelectSide(s) {
+  editSide = s;
+  ['L','R','B'].forEach(x => document.getElementById('edit-side-'+x).classList.toggle('active', x===s));
+}
+function editSelectPSide(s) {
+  editPSide = s;
+  ['L','R','B'].forEach(x => document.getElementById('edit-pside-'+x).classList.toggle('active', x===s));
+}
+
+function openEdit(id) {
+  const entry = data.entries.find(e => e.id === id);
+  if (!entry) return;
+  editingId = id;
+  editingType = entry.type;
+
+  // modal title
+  document.getElementById('edit-modal-title').textContent = entry.type==='feed' ? t('editFeedTitle') : t('editPumpTitle');
+  document.getElementById('edit-save-btn').textContent = t('editSave');
+  document.getElementById('edit-cancel-btn').textContent = t('confirmCancel');
+
+  // translate side labels
+  ['edit-side-L','edit-side-R','edit-side-B'].forEach((id2,i)=>{document.getElementById(id2).textContent=[t('left'),t('right'),t('both')][i];});
+  ['edit-pside-L','edit-pside-R','edit-pside-B'].forEach((id2,i)=>{document.getElementById(id2).textContent=[t('left'),t('right'),t('both')][i];});
+
+  const ts = new Date(entry.ts);
+  const timeStr = ts.toTimeString().slice(0,5); // HH:MM
+
+  if (entry.type === 'feed') {
+    document.getElementById('edit-feed-fields').style.display = '';
+    document.getElementById('edit-pump-fields').style.display = 'none';
+    editSide = entry.side || 'L';
+    ['L','R','B'].forEach(x => document.getElementById('edit-side-'+x).classList.toggle('active', x===editSide));
+    const totalSec = entry.duration || 0;
+    document.getElementById('edit-feed-dur-m').value = Math.floor(totalSec/60);
+    document.getElementById('edit-feed-dur-s').value = totalSec % 60;
+    document.getElementById('edit-feed-date').value = entry.date;
+    document.getElementById('edit-feed-time').value = timeStr;
+  } else {
+    document.getElementById('edit-feed-fields').style.display = 'none';
+    document.getElementById('edit-pump-fields').style.display = '';
+    editPSide = entry.side || 'L';
+    ['L','R','B'].forEach(x => document.getElementById('edit-pside-'+x).classList.toggle('active', x===editPSide));
+    document.getElementById('edit-pump-ml').value = entry.ml || 0;
+    document.getElementById('edit-pump-dur').value = entry.duration || 0;
+    document.getElementById('edit-pump-date').value = entry.date;
+    document.getElementById('edit-pump-time').value = timeStr;
+  }
+
+  // translate labels
+  const lblMap = {
+    'edit-lbl-side':'left','edit-lbl-dur':'duration','edit-lbl-date':'dateLabel','edit-lbl-time':'editTime',
+    'edit-lbl-m':'editM','edit-lbl-s':'editS',
+    'edit-lbl-pside':'left','edit-lbl-ml':'amount','edit-lbl-pdur':'duration',
+    'edit-lbl-pdate':'dateLabel','edit-lbl-ptime':'editTime','edit-lbl-pmin':'min',
+  };
+  Object.entries(lblMap).forEach(([eid,key])=>{ const el=document.getElementById(eid); if(el) el.textContent=t(key); });
+
+  document.getElementById('edit-overlay').style.display = 'flex';
+}
+
+function closeEdit() {
+  editingId = null;
+  document.getElementById('edit-overlay').style.display = 'none';
+}
+
+function saveEdit() {
+  const idx = data.entries.findIndex(e => e.id === editingId);
+  if (idx === -1) { closeEdit(); return; }
+  const entry = data.entries[idx];
+
+  if (editingType === 'feed') {
+    const durM = parseInt(document.getElementById('edit-feed-dur-m').value) || 0;
+    const durS = parseInt(document.getElementById('edit-feed-dur-s').value) || 0;
+    const dateVal = document.getElementById('edit-feed-date').value || todayKey();
+    const timeVal = document.getElementById('edit-feed-time').value || '00:00';
+    entry.side = editSide;
+    entry.duration = durM*60 + durS;
+    entry.date = dateVal;
+    entry.ts = new Date(dateVal + 'T' + timeVal + ':00').getTime();
+  } else {
+    const dateVal = document.getElementById('edit-pump-date').value || todayKey();
+    const timeVal = document.getElementById('edit-pump-time').value || '00:00';
+    entry.side = editPSide;
+    entry.ml = parseFloat(document.getElementById('edit-pump-ml').value) || 0;
+    entry.duration = parseFloat(document.getElementById('edit-pump-dur').value) || 0;
+    entry.date = dateVal;
+    entry.ts = new Date(dateVal + 'T' + timeVal + ':00').getTime();
+  }
+
+  saveData();
+  closeEdit();
+  renderAll();
+  showToast(t('toastEdited'));
+}
+// ── END EDIT MODAL ────────────────────────────────────────────
+
 function renderFeedLog() {
   const filterDate = document.getElementById('feed-date') ? (document.getElementById('feed-date').value || todayKey()) : todayKey();
   const entries = data.entries.filter(e => e.type==='feed' && e.date===filterDate).sort((a,b) => b.ts-a.ts);
@@ -489,7 +668,7 @@ function renderFeedLog() {
     const m = Math.floor(e.duration/60), s = e.duration%60;
     const dur = e.duration ? m+'m '+s+'s' : t('noTimer');
     const d = document.createElement('div'); d.className = 'log-entry';
-    d.innerHTML = `<div class="ldot dot-feed"></div><div class="log-info"><div class="log-title">${sideLabel(e.side)}</div><div class="log-sub">${dur}</div></div><div class="log-time">${formatTime(e.ts)}</div><button class="del-btn" onclick="deleteEntry(${e.id})">&#x1F5D1;</button>`;
+    d.innerHTML = `<div class="ldot dot-feed"></div><div class="log-info"><div class="log-title">${sideLabel(e.side)}</div><div class="log-sub">${dur}</div></div><div class="log-time">${formatTime(e.ts)}</div><button class="edit-btn" onclick="openEdit(${e.id})" title="Edit">✏️</button><button class="del-btn" onclick="deleteEntry(${e.id})">&#x1F5D1;</button>`;
     c.appendChild(d);
   });
 }
@@ -501,7 +680,7 @@ function renderPumpLog() {
   c.innerHTML = '';
   entries.forEach(e => {
     const d = document.createElement('div'); d.className = 'log-entry';
-    d.innerHTML = `<div class="ldot dot-pump"></div><div class="log-info"><div class="log-title">${sideLabel(e.side)} — ${e.ml} ml</div><div class="log-sub">${e.duration ? e.duration+' '+t('min') : ''}</div></div><div class="log-time">${formatTime(e.ts)}</div><button class="del-btn" onclick="deleteEntry(${e.id})">&#x1F5D1;</button>`;
+    d.innerHTML = `<div class="ldot dot-pump"></div><div class="log-info"><div class="log-title">${sideLabel(e.side)} — ${e.ml} ml</div><div class="log-sub">${e.duration ? e.duration+' '+t('min') : ''}</div></div><div class="log-time">${formatTime(e.ts)}</div><button class="edit-btn" onclick="openEdit(${e.id})" title="Edit">✏️</button><button class="del-btn" onclick="deleteEntry(${e.id})">&#x1F5D1;</button>`;
     c.appendChild(d);
   });
 }
